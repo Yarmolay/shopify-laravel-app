@@ -1,0 +1,53 @@
+version: '3'
+
+networks:
+  laravel_shopify:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.221.0/28
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile
+    volumes:
+      - .:/var/www
+    depends_on:
+      - db
+    ports:
+      - 443:443
+      - 8081:80
+    networks:
+      - laravel_shopify
+
+  db:
+    image: mariadb:10.6-focal
+    command: --init-file /data/application/init.sql
+    volumes:
+      - ./docker/init.sql:/data/application/init.sql
+    environment:
+      - MYSQL_ROOT_USER=root
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=laravel
+    ports:
+      - 3306:3306
+    networks:
+      - laravel_shopify
+
+#  db:
+#    image: mysql:latest
+#    restart: always
+#    volumes:
+#      - ./docker/init.sql:/docker-entrypoint-initdb.d/init.sql
+#    environment:
+#      - MYSQL_ROOT_PASSWORD=password
+#      - MYSQL_DATABASE=symfony_test
+#      - MYSQL_USER=root
+#      - MYSQL_PASSWORD=root
+#    ports:
+#      - 3306:3306
+#    networks:
+#      - wishmaster
